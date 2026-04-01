@@ -47,6 +47,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        coin: "hsl(var(--coin-gold))",
+        danger: "hsl(var(--danger))",
+        shield: "hsl(var(--shield-blue))",
+        speed: "hsl(var(--speed-yellow))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
