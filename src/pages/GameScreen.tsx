@@ -77,6 +77,7 @@ const GameScreen = () => {
     const g = gameRef.current;
     g.speed = arena.obstacleSpeed;
 
+    g.running = true;
     let animId: number;
 
     const spawnObject = () => {
