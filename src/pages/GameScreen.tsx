@@ -7,7 +7,7 @@ interface GameObject {
   y: number;
   w: number;
   h: number;
-  type: "obstacle" | "coin" | "shield" | "speed" | "double";
+  type: "obstacle" | "coin" | "shield" | "speed" | "double" | "magnet" | "shrink" | "life" | "freeze" | "mega";
 }
 
 const GROUND_Y = 260;
