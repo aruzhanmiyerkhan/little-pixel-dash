@@ -89,9 +89,14 @@ const GameScreen = () => {
       const rand = Math.random();
       let type: GameObject["type"] = "obstacle";
       if (rand > 0.75) type = "coin";
-      else if (rand > 0.92) type = "shield";
-      else if (rand > 0.88) type = "speed";
-      else if (rand > 0.84) type = "double";
+      else if (rand > 0.94) type = "shield";
+      else if (rand > 0.91) type = "speed";
+      else if (rand > 0.88) type = "double";
+      else if (rand > 0.85) type = "magnet";
+      else if (rand > 0.82) type = "shrink";
+      else if (rand > 0.80) type = "life";
+      else if (rand > 0.78) type = "freeze";
+      else if (rand > 0.76) type = "mega";
 
       const h = type === "obstacle" ? 20 + Math.random() * 20 : 12;
       const w = type === "obstacle" ? 16 + Math.random() * 16 : 12;
