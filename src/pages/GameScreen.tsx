@@ -206,22 +206,42 @@ const GameScreen = () => {
       }
 
       // Update & draw objects
-      const currentSpeed = g.speedTimer > 0 ? g.speed * 0.6 : g.speed;
+      const currentSpeed = g.freezeTimer > 0 ? g.speed * 0.3 : g.speedTimer > 0 ? g.speed * 0.6 : g.speed;
+      const magnetRange = g.magnetTimer > 0 ? 80 : 0;
+
       g.objects = g.objects.filter((obj) => {
         obj.x -= currentSpeed;
         if (obj.x + obj.w < 0) return false;
 
+        // Magnet: attract coins
+        if (magnetRange > 0 && obj.type === "coin") {
+          const dx = 40 - obj.x;
+          const dy = g.playerY - obj.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < magnetRange) {
+            obj.x += dx * 0.15;
+            obj.y += dy * 0.15;
+          }
+        }
+
         if (checkCollision(obj)) {
           if (obj.type === "obstacle") {
+            if (g.megaTimer > 0) return false; // mega destroys obstacles
             if (g.shieldTimer > 0) {
               g.shieldTimer = 0;
               return false;
             }
+            if (g.lives > 0) {
+              g.lives--;
+              return false;
+            }
+            if (g.shrinkTimer > 0) return false; // tiny = dodge
             g.gameOver = true;
             setGameOver(true);
             return true;
           } else if (obj.type === "coin") {
-            g.coins += g.doubleCoins ? 2 : 1;
+            const mult = (g.doubleCoins ? 2 : 1) * (g.megaTimer > 0 ? 3 : 1);
+            g.coins += mult;
             setCoins(g.coins);
           } else if (obj.type === "shield") {
             g.shieldTimer = 300;
@@ -230,6 +250,16 @@ const GameScreen = () => {
           } else if (obj.type === "double") {
             g.doubleCoins = true;
             g.doubleTimer = 300;
+          } else if (obj.type === "magnet") {
+            g.magnetTimer = 400;
+          } else if (obj.type === "shrink") {
+            g.shrinkTimer = 250;
+          } else if (obj.type === "life") {
+            g.lives = Math.min(g.lives + 1, 3);
+          } else if (obj.type === "freeze") {
+            g.freezeTimer = 200;
+          } else if (obj.type === "mega") {
+            g.megaTimer = 180;
           }
           return false;
         }
@@ -248,12 +278,38 @@ const GameScreen = () => {
         } else if (obj.type === "shield") {
           ctx.fillStyle = "#3b82f6";
           ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+          ctx.fillStyle = "#60a5fa";
+          ctx.fillRect(obj.x + 3, obj.y + 2, 6, 4);
         } else if (obj.type === "speed") {
           ctx.fillStyle = "#facc15";
           ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
         } else if (obj.type === "double") {
           ctx.fillStyle = "#a855f7";
           ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+        } else if (obj.type === "magnet") {
+          ctx.fillStyle = "#f43f5e";
+          ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+          ctx.fillStyle = "#fb7185";
+          ctx.fillRect(obj.x + 2, obj.y + 4, 4, 4);
+        } else if (obj.type === "shrink") {
+          ctx.fillStyle = "#06b6d4";
+          ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+        } else if (obj.type === "life") {
+          ctx.fillStyle = "#f472b6";
+          ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+          ctx.fillStyle = "#ec4899";
+          ctx.fillRect(obj.x + 3, obj.y + 2, 6, 3);
+          ctx.fillRect(obj.x + 2, obj.y + 3, 8, 5);
+        } else if (obj.type === "freeze") {
+          ctx.fillStyle = "#67e8f9";
+          ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+          ctx.fillStyle = "#a5f3fc";
+          ctx.fillRect(obj.x + 4, obj.y + 4, 4, 4);
+        } else if (obj.type === "mega") {
+          ctx.fillStyle = "#f59e0b";
+          ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillRect(obj.x + 2, obj.y + 2, 8, 8);
         }
         return true;
       });
@@ -261,6 +317,10 @@ const GameScreen = () => {
       // Timers
       if (g.shieldTimer > 0) g.shieldTimer--;
       if (g.speedTimer > 0) g.speedTimer--;
+      if (g.magnetTimer > 0) g.magnetTimer--;
+      if (g.shrinkTimer > 0) g.shrinkTimer--;
+      if (g.freezeTimer > 0) g.freezeTimer--;
+      if (g.megaTimer > 0) g.megaTimer--;
       if (g.doubleTimer > 0) {
         g.doubleTimer--;
         if (g.doubleTimer <= 0) g.doubleCoins = false;
@@ -282,21 +342,22 @@ const GameScreen = () => {
       ctx.textAlign = "right";
       ctx.fillText(`${g.coins}🪙`, CANVAS_W - 10, 20);
 
-      if (g.shieldTimer > 0) {
-        ctx.fillStyle = "#3b82f6";
+      // Active power-ups HUD
+      let hudX = 10;
+      const drawHud = (emoji: string, color: string) => {
+        ctx.fillStyle = color;
         ctx.textAlign = "left";
-        ctx.fillText("🛡", 10, 35);
-      }
-      if (g.speedTimer > 0) {
-        ctx.fillStyle = "#facc15";
-        ctx.textAlign = "left";
-        ctx.fillText("⚡", 30, 35);
-      }
-      if (g.doubleCoins) {
-        ctx.fillStyle = "#a855f7";
-        ctx.textAlign = "left";
-        ctx.fillText("x2", 50, 35);
-      }
+        ctx.fillText(emoji, hudX, 35);
+        hudX += 20;
+      };
+      if (g.shieldTimer > 0) drawHud("🛡", "#3b82f6");
+      if (g.speedTimer > 0) drawHud("⚡", "#facc15");
+      if (g.doubleCoins) drawHud("x2", "#a855f7");
+      if (g.magnetTimer > 0) drawHud("🧲", "#f43f5e");
+      if (g.shrinkTimer > 0) drawHud("🔹", "#06b6d4");
+      if (g.freezeTimer > 0) drawHud("❄", "#67e8f9");
+      if (g.megaTimer > 0) drawHud("⭐", "#f59e0b");
+      if (g.lives > 0) drawHud(`❤${g.lives}`, "#f472b6");
 
       animId = requestAnimationFrame(loop);
     };
