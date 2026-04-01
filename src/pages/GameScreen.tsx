@@ -36,6 +36,11 @@ const GameScreen = () => {
     speedTimer: 0,
     doubleCoins: false,
     doubleTimer: 0,
+    magnetTimer: 0,
+    shrinkTimer: 0,
+    freezeTimer: 0,
+    lives: 0,
+    megaTimer: 0,
     speed: 4,
     lastSpawn: 0,
   });
